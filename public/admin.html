@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h2>Login Admin</h2>
+
+<div id="login">
+  <input id="user" placeholder="Username"><br>
+  <input id="pass" type="password" placeholder="Password"><br>
+  <button onclick="login()">Login</button>
+</div>
+
+<div id="panel" style="display:none;">
+  <h2>Dashboard</h2>
+  <table border="1">
+    <tbody id="data"></tbody>
+  </table>
+</div>
+
+<script>
+async function login(){
+ let res = await fetch("/login", {
+  method:"POST",
+  headers:{'Content-Type':'application/json'},
+  body: JSON.stringify({
+    username: user.value,
+    password: pass.value
+  })
+ });
+
+ let r = await res.json();
+ if(r.success){
+   load();
+   loginDiv.style.display="none";
+   panel.style.display="block";
+ } else {
+   alert("Login gagal");
+ }
+}
+
+async function load(){
+ let res = await fetch("/admin/transaksi");
+ let d = await res.json();
+
+ let html="";
+ d.forEach(x=>{
+  html += `
+   <tr>
+    <td>${x.nomor}</td>
+    <td>${x.nominal}</td>
+    <td>${x.status}</td>
+    <td>
+     <button onclick="up(${x.id},'sukses')">✔</button>
+     <button onclick="up(${x.id},'gagal')">✖</button>
+    </td>
+   </tr>`;
+ });
+
+ data.innerHTML = html;
+}
+
+async function up(id,status){
+ await fetch(`/admin/update/${id}`,{
+  method:"POST",
+  headers:{'Content-Type':'application/json'},
+  body: JSON.stringify({status})
+ });
+ load();
+}
+</script>
+
+</body>
+</html>

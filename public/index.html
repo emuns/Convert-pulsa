@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<body>
+<h2>Convert Pulsa</h2>
+
+<form id="form">
+<input id="nomor" placeholder="Nomor"><br>
+<input id="nominal" type="number" placeholder="Nominal"><br>
+
+<select id="provider">
+<option>Telkomsel</option>
+<option>XL</option>
+</select><br>
+
+<input id="tujuan" placeholder="Tujuan"><br>
+<input type="file" id="bukti"><br>
+
+<button>Kirim</button>
+</form>
+
+<script>
+form.onsubmit = async (e) => {
+ e.preventDefault();
+
+ let fd = new FormData();
+ fd.append("nomor", nomor.value);
+ fd.append("nominal", nominal.value);
+ fd.append("provider", provider.value);
+ fd.append("tujuan", tujuan.value);
+ fd.append("bukti", bukti.files[0]);
+
+ await fetch("/kirim", { method:"POST", body: fd });
+ alert("Terkirim!");
+};
+</script>
+
+</body>
+</html>
