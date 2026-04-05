@@ -1,63 +1,65 @@
-const express = require('express')
-const session = require('express-session')
-const bodyParser = require('body-parser')
-const path = require('path')
+const express = require("express");
+const session = require("express-session");
+const path = require("path");
 
-const app = express()
+const app = express();
 
 // middleware
-app.use(bodyParser.urlencoded({ extended: true }))
-app.use(bodyParser.json())
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
 app.use(session({
-  secret: 'rahasia123',
+  secret: "secret123",
   resave: false,
-  saveUninitialized: true,
-  cookie: { secure: false }
-}))
+  saveUninitialized: true
+}));
 
-// static file
-app.use(express.static(path.join(__dirname, 'public')))
+// static file (CSS, JS kalau ada)
+app.use(express.static(path.join(__dirname, "public")));
 
-// ===== ROUTE =====
+// ================== ROUTE ==================
+
+// root -> login
+app.get("/", (req, res) => {
+  res.redirect("/login");
+});
 
 // halaman login
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/login.html'))
-})
+app.get("/login", (req, res) => {
+  res.sendFile(path.join(__dirname, "login.html"));
+});
 
 // proses login
-app.post('/login', (req, res) => {
-  const { username, password } = req.body
+app.post("/login", (req, res) => {
+  const { username, password } = req.body;
 
-  // akun default
-  if (username === 'admin' && password === 'admin123') {
-    req.session.user = username
-    return res.json({ success: true })
+  if (username === "admin" && password === "123") {
+    req.session.user = username;
+    return res.redirect("/dashboard");
   }
 
-  res.json({ success: false })
-})
+  res.send("Login gagal");
+});
 
-// dashboard (harus login)
-app.get('/dashboard', (req, res) => {
+// dashboard (protected)
+app.get("/dashboard", (req, res) => {
   if (!req.session.user) {
-    return res.redirect('/')
+    return res.redirect("/login");
   }
 
-  res.sendFile(path.join(__dirname, 'public/dashboard.html'))
-})
+  res.sendFile(path.join(__dirname, "dashboard.html"));
+});
 
 // logout
-app.get('/logout', (req, res) => {
+app.get("/logout", (req, res) => {
   req.session.destroy(() => {
-    res.redirect('/')
-  })
-})
+    res.redirect("/login");
+  });
+});
 
-// ===== SERVER =====
-const PORT = process.env.PORT || 3000
+// ================== START ==================
+const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log('Server jalan di port ' + PORT)
-})
+  console.log("Server jalan di port " + PORT);
+});
