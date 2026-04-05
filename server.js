@@ -8,23 +8,26 @@ const app = express();
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-app.use(session({
-  secret: "secret123",
-  resave: false,
-  saveUninitialized: true
-}));
+// session
+app.use(
+  session({
+    secret: "secret123",
+    resave: false,
+    saveUninitialized: true,
+  })
+);
 
-// static file (CSS, JS kalau ada)
-app.use(express.static(path.join(__dirname, "public")));
+// 👉 FIX PENTING: serve semua file dari root folder
+app.use(express.static(__dirname));
 
-// ================== ROUTE ==================
+// ================= ROUTE =================
 
-// root -> login
+// root → login
 app.get("/", (req, res) => {
   res.redirect("/login");
 });
 
-// halaman login
+// login page
 app.get("/login", (req, res) => {
   res.sendFile(path.join(__dirname, "login.html"));
 });
@@ -57,9 +60,8 @@ app.get("/logout", (req, res) => {
   });
 });
 
-// ================== START ==================
+// start server
 const PORT = process.env.PORT || 3000;
-
 app.listen(PORT, () => {
   console.log("Server jalan di port " + PORT);
 });
