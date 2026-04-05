@@ -15,18 +15,22 @@ app.use(session({
   saveUninitialized: true
 }));
 
-// static
-app.use(express.static(path.resolve(".")));
+// static folder (WAJIB FIX)
+app.use(express.static(path.join(__dirname)));
 
-// routes
+// ================= ROUTES =================
+
+// root -> login
 app.get("/", (req, res) => {
   res.redirect("/login");
 });
 
+// halaman login
 app.get("/login", (req, res) => {
   res.sendFile(path.join(__dirname, "login.html"));
 });
 
+// proses login
 app.post("/login", (req, res) => {
   const { username, password } = req.body;
 
@@ -38,6 +42,7 @@ app.post("/login", (req, res) => {
   res.send("Login gagal");
 });
 
+// dashboard (protected)
 app.get("/dashboard", (req, res) => {
   if (!req.session.user) {
     return res.redirect("/login");
@@ -46,13 +51,14 @@ app.get("/dashboard", (req, res) => {
   res.sendFile(path.join(__dirname, "dashboard.html"));
 });
 
+// logout
 app.get("/logout", (req, res) => {
   req.session.destroy(() => {
     res.redirect("/login");
   });
 });
 
-// start
+// start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log("Server jalan di port " + PORT);
