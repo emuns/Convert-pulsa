@@ -7,7 +7,7 @@ const path = require('path')
 const app = express()
 
 // PORT wajib dari Railway
-const PORT = process.env.PORT || 3000
+const PORT = process.env.PORT
 
 // Middleware
 app.use(express.urlencoded({ extended: true }))
