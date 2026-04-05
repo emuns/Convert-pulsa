@@ -1,20 +1,14 @@
-<form id="f">
-<input name="username" placeholder="admin">
-<input name="password" type="password">
-<button>Login</button>
-</form>
-
-<script>
-document.getElementById("f").onsubmit = async (e)=>{
-  e.preventDefault();
-  const fd = new FormData(e.target);
-
-  const res = await fetch("/login", {
-    method:"POST",
-    body:new URLSearchParams(fd)
-  });
-
-  const d = await res.json();
-  alert(d.success ? "Login berhasil" : "Gagal");
-}
-</script>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Login Admin</title>
+</head>
+<body>
+  <h2>Login Admin</h2>
+  <form method="POST" action="/login">
+    <input type="text" name="username" placeholder="Username"><br><br>
+    <input type="password" name="password" placeholder="Password"><br><br>
+    <button type="submit">Login</button>
+  </form>
+</body>
+</html>
