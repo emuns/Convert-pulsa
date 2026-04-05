@@ -1,56 +1,63 @@
-const express = require("express");
-const mongoose = require("mongoose");
-const session = require("express-session");
-const bcrypt = require("bcryptjs");
-const path = require("path");
+const express = require('express')
+const session = require('express-session')
+const bodyParser = require('body-parser')
+const path = require('path')
 
-const app = express();
-const PORT = 3000;
+const app = express()
 
-// DB LOCAL (sementara)
-mongoose.connect("mongodb://127.0.0.1:27017/pulsa");
-
-const User = mongoose.model("User", {
-  username: String,
-  password: String,
-  saldo: Number
-});
-
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+// middleware
+app.use(bodyParser.urlencoded({ extended: true }))
+app.use(bodyParser.json())
 
 app.use(session({
-  secret: "secret",
+  secret: 'rahasia123',
   resave: false,
-  saveUninitialized: true
-}));
+  saveUninitialized: true,
+  cookie: { secure: false }
+}))
 
-app.use(express.static("public"));
+// static file
+app.use(express.static(path.join(__dirname, 'public')))
 
-// auto admin
-(async () => {
-  const cek = await User.findOne({ username: "admin" });
-  if (!cek) {
-    const hash = await bcrypt.hash("123456", 10);
-    await User.create({
-      username: "admin",
-      password: hash,
-      saldo: 100000
-    });
-    console.log("Admin dibuat");
+// ===== ROUTE =====
+
+// halaman login
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/login.html'))
+})
+
+// proses login
+app.post('/login', (req, res) => {
+  const { username, password } = req.body
+
+  // akun default
+  if (username === 'admin' && password === 'admin123') {
+    req.session.user = username
+    return res.json({ success: true })
   }
-})();
 
-// login
-app.post("/login", async (req, res) => {
-  const user = await User.findOne({ username: req.body.username });
-  if (!user) return res.json({ success: false });
+  res.json({ success: false })
+})
 
-  const match = await bcrypt.compare(req.body.password, user.password);
-  if (!match) return res.json({ success: false });
+// dashboard (harus login)
+app.get('/dashboard', (req, res) => {
+  if (!req.session.user) {
+    return res.redirect('/')
+  }
 
-  req.session.user = user._id;
-  res.json({ success: true });
-});
+  res.sendFile(path.join(__dirname, 'public/dashboard.html'))
+})
 
-app.listen(PORT, () => console.log("Server jalan"));
+// logout
+app.get('/logout', (req, res) => {
+  req.session.destroy(() => {
+    res.redirect('/')
+  })
+})
+
+// ===== SERVER =====
+const PORT = process.env.PORT || 3000
+
+app.listen(PORT, () => {
+  console.log('Server jalan di port ' + PORT)
+})
