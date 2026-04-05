@@ -6,37 +6,38 @@ const path = require('path')
 
 const app = express()
 
-// PORT wajib dari Railway
-const PORT = process.env.PORT
+// PORT Railway (WAJIB ADA fallback)
+const PORT = process.env.PORT || 3000
 
 // Middleware
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
 
-// SESSION FIX (biar ga crash di Railway)
+// Static folder (WAJIB biar HTML kebaca)
+app.use(express.static("public"))
+
+// Session fix
 app.use(session({
   secret: process.env.SESSION_SECRET || 'secret123',
   resave: false,
   saveUninitialized: true
 }))
 
-// ===== USER LOGIN =====
+// USER LOGIN
 const ADMIN_USER = process.env.ADMIN_USER || "admin"
 const ADMIN_PASS = process.env.ADMIN_PASS || "12345"
 
-// ===== ROUTES =====
-
-// Root → login
+// ROOT
 app.get('/', (req, res) => {
   res.redirect('/login')
 })
 
-// Halaman login
+// LOGIN PAGE
 app.get('/login', (req, res) => {
-  res.sendFile(path.join(__dirname, 'login.html'))
+  res.sendFile(path.join(__dirname, 'public', 'login.html'))
 })
 
-// Proses login
+// LOGIN POST
 app.post('/login', (req, res) => {
   const { username, password } = req.body
 
@@ -51,25 +52,25 @@ app.post('/login', (req, res) => {
   `)
 })
 
-// Middleware auth
+// AUTH MIDDLEWARE
 function auth(req, res, next) {
   if (req.session.login) return next()
   res.redirect('/login')
 }
 
-// Dashboard
+// DASHBOARD
 app.get('/dashboard', auth, (req, res) => {
-  res.sendFile(path.join(__dirname, 'dashboard.html'))
+  res.sendFile(path.join(__dirname, 'public', 'dashboard.html'))
 })
 
-// Logout
+// LOGOUT
 app.get('/logout', (req, res) => {
   req.session.destroy(() => {
     res.redirect('/login')
   })
 })
 
-// ===== START SERVER =====
-app.listen(PORT, '0.0.0.0', () => {
-  console.log('Server jalan di port ' + PORT)
+// START SERVER
+app.listen(PORT, "0.0.0.0", () => {
+  console.log("Server jalan di port " + PORT)
 })
