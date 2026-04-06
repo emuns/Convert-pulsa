@@ -11,13 +11,13 @@ const PORT = process.env.PORT || 3000
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
 
-// 🔥 TRUST PROXY (WAJIB Railway)
+// WAJIB Railway
 app.set('trust proxy', 1)
 
-// 🔥 STATIC PUBLIC (WAJIB)
+// Static
 app.use(express.static(path.join(__dirname, 'public')))
 
-// 🔥 SESSION
+// Session
 app.use(session({
   secret: process.env.SESSION_SECRET || 'secret123',
   resave: false,
@@ -25,18 +25,18 @@ app.use(session({
   cookie: { secure: false }
 }))
 
-// ================= LOGIN =================
-const ADMIN_USER = 'admin'
-const ADMIN_PASS = '12345'
+// 🔥 AMBIL DARI ENV
+const ADMIN_USER = process.env.ADMIN_USER
+const ADMIN_PASS = process.env.ADMIN_PASS
 
 // ================= ROUTES =================
 
-// 🔥 ROOT (INI KUNCI BIAR GA BLANK)
+// ROOT → LOGIN
 app.get('/', (req, res) => {
-  res.redirect('/login.html')
+  res.sendFile(path.join(__dirname, 'public', 'login.html'))
 })
 
-// 🔥 LOGIN FORM
+// LOGIN
 app.post('/login', (req, res) => {
   const { username, password } = req.body
 
@@ -48,7 +48,7 @@ app.post('/login', (req, res) => {
   res.send('Login gagal ❌')
 })
 
-// 🔥 AUTH PROTECT (OPSIONAL)
+// PROTECT DASHBOARD
 app.get('/dashboard.html', (req, res, next) => {
   if (!req.session.login) return res.redirect('/login.html')
   next()
@@ -61,7 +61,7 @@ app.get('/logout', (req, res) => {
   })
 })
 
-// ================= START =================
+// START
 app.listen(PORT, '0.0.0.0', () => {
   console.log('Server jalan di port ' + PORT)
 })
