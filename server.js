@@ -6,38 +6,37 @@ const path = require('path')
 
 const app = express()
 
-// PORT Railway
 const PORT = process.env.PORT || 3000
 
-// Middleware
+// middleware
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
 
-// Static folder
-app.use(express.static("public"))
+// WAJIB: serve folder public
+app.use(express.static(path.join(__dirname, 'public')))
 
-// Session
+// session
 app.use(session({
   secret: process.env.SESSION_SECRET || 'secret123',
   resave: false,
   saveUninitialized: true
 }))
 
-// USER LOGIN
-const ADMIN_USER = process.env.ADMIN_USER || "admin"
-const ADMIN_PASS = process.env.ADMIN_PASS || "12345"
+// login config
+const ADMIN_USER = process.env.ADMIN_USER || 'admin'
+const ADMIN_PASS = process.env.ADMIN_PASS || '12345'
 
-// ================== ROOT (FIX UTAMA) ==================
+// root → login
 app.get('/', (req, res) => {
-  res.status(200).send("OK");
-});
+  res.redirect('/login')
+})
 
-// LOGIN PAGE
+// login page
 app.get('/login', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'login.html'))
 })
 
-// LOGIN PROCESS
+// login process
 app.post('/login', (req, res) => {
   const { username, password } = req.body
 
@@ -46,36 +45,28 @@ app.post('/login', (req, res) => {
     return res.redirect('/dashboard')
   }
 
-  res.send(`
-    <h3>Login gagal ❌</h3>
-    <a href="/login">Coba lagi</a>
-  `)
+  res.send('Login gagal')
 })
 
-// AUTH MIDDLEWARE
+// middleware auth
 function auth(req, res, next) {
   if (req.session.login) return next()
   res.redirect('/login')
 }
 
-// DASHBOARD
+// dashboard
 app.get('/dashboard', auth, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'dashboard.html'))
 })
 
-// LOGOUT
+// logout
 app.get('/logout', (req, res) => {
   req.session.destroy(() => {
     res.redirect('/login')
   })
 })
 
-// DEBUG ROUTE (BIAR RAILWAY DETECT)
-app.get('/ping', (req, res) => {
-  res.send("OK")
-})
-
-// START SERVER
-app.listen(PORT, "0.0.0.0", () => {
-  console.log("Server jalan di port " + PORT)
+// START SERVER (WAJIB)
+app.listen(PORT, '0.0.0.0', () => {
+  console.log('Server jalan di port ' + PORT)
 })
