@@ -1,0 +1,26 @@
+<h2>Input Convert Pulsa</h2>
+
+<form id="form">
+  <input name="nomor" placeholder="Nomor HP"><br>
+  <input name="provider" placeholder="Telkomsel / XL"><br>
+  <input name="nominal" type="number" placeholder="Nominal"><br>
+  <button type="submit">Kirim</button>
+</form>
+
+<a href="/dashboard.html">Kembali</a>
+
+<script>
+document.getElementById('form').onsubmit = async (e)=>{
+  e.preventDefault()
+
+  const data = Object.fromEntries(new FormData(e.target))
+
+  await fetch('/api/transaksi',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(data)
+  })
+
+  alert('Berhasil dikirim!')
+}
+</script>
