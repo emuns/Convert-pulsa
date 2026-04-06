@@ -1,124 +1,65 @@
 require("dotenv").config();
 const express = require("express");
-const path = require("path");
-const session = require("express-session");
 const mongoose = require("mongoose");
-
-const Transaksi = require("./models/Transaksi");
+const path = require("path");
 
 const app = express();
+const PORT = process.env.PORT || 8080;
 
-// ================= DATABASE =================
+// CONNECT DB
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB connected"))
-  .catch(err => console.log(err));
+.then(() => console.log("MongoDB connected ✅"))
+.catch(err => console.log(err));
 
-// ================= MIDDLEWARE =================
+// SCHEMA
+const TransaksiSchema = new mongoose.Schema({
+  nomor: String,
+  nominal: String,
+  status: { type: String, default: "pending" },
+  createdAt: { type: Date, default: Date.now }
+});
+
+const Transaksi = mongoose.model("Transaksi", TransaksiSchema);
+
+// MIDDLEWARE
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-app.use(
-  session({
-    secret: "rahasia",
-    resave: false,
-    saveUninitialized: true,
-  })
-);
-
 app.use(express.static(path.join(__dirname, "public")));
 
-// ================= RATE =================
-const RATE = 0.8; // 80%
-
-// ================= ROUTES =================
+// ROUTE WEB
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public/index.html"));
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-app.get("/login", (req, res) => {
-  res.sendFile(path.join(__dirname, "public/login.html"));
-});
+// API TAMBAH TRANSAKSI
+app.post("/api/transaksi", async (req, res) => {
+  try {
+    const { nomor, nominal } = req.body;
 
-// LOGIN
-app.post("/login", (req, res) => {
-  const { username, password } = req.body;
+    const data = new Transaksi({ nomor, nominal });
+    await data.save();
 
-  if (
-    username === process.env.ADMIN_USER &&
-    password === process.env.ADMIN_PASS
-  ) {
-    req.session.user = username;
-    return res.redirect("/dashboard");
+    res.json({ success: true, message: "Transaksi masuk" });
+  } catch (err) {
+    res.json({ success: false, error: err.message });
   }
-
-  res.send("Login gagal");
 });
 
-// DASHBOARD
-app.get("/dashboard", async (req, res) => {
-  if (!req.session.user) return res.redirect("/login");
-
+// API GET TRANSAKSI (ADMIN)
+app.get("/api/transaksi", async (req, res) => {
   const data = await Transaksi.find().sort({ createdAt: -1 });
-
-  let html = "<h1>Dashboard</h1><a href='/logout'>Logout</a><br><br>";
-
-  data.forEach((t) => {
-    html += `
-      <div style="border:1px solid #ccc;padding:10px;margin:10px;">
-        Nomor: ${t.nomor} <br>
-        Nominal: ${t.nominal} <br>
-        Hasil: ${t.hasil} <br>
-        Status: ${t.status}
-      </div>
-    `;
-  });
-
-  res.send(html);
-});
-
-// TRANSAKSI PAGE
-app.get("/transaksi", (req, res) => {
-  res.sendFile(path.join(__dirname, "public/transaksi.html"));
-});
-
-// SIMPAN TRANSAKSI
-app.post("/transaksi", async (req, res) => {
-  const { nomor, nominal } = req.body;
-
-  const hasil = nominal * RATE;
-
-  const data = new Transaksi({
-    nomor,
-    nominal,
-    rate: RATE,
-    hasil,
-  });
-
-  await data.save();
-
-  res.send(`
-    <h2>Berhasil</h2>
-    <p>Hasil yang didapat: ${hasil}</p>
-    <a href="/">Kembali</a>
-  `);
+  res.json(data);
 });
 
 // UPDATE STATUS
-app.get("/update/:id/:status", async (req, res) => {
-  if (!req.session.user) return res.redirect("/login");
-
+app.post("/api/update/:id", async (req, res) => {
   await Transaksi.findByIdAndUpdate(req.params.id, {
-    status: req.params.status,
+    status: req.body.status
   });
-
-  res.redirect("/dashboard");
+  res.json({ success: true });
 });
 
-// LOGOUT
-app.get("/logout", (req, res) => {
-  req.session.destroy(() => res.redirect("/"));
+// START SERVER
+app.listen(PORT, () => {
+  console.log("Server jalan di port " + PORT);
 });
-
-// START
-const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => console.log("Server jalan " + PORT));
