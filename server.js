@@ -6,17 +6,17 @@ const path = require('path')
 
 const app = express()
 
-// PORT Railway (WAJIB ADA fallback)
+// PORT Railway
 const PORT = process.env.PORT || 3000
 
 // Middleware
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
 
-// Static folder (WAJIB biar HTML kebaca)
+// Static folder
 app.use(express.static("public"))
 
-// Session fix
+// Session
 app.use(session({
   secret: process.env.SESSION_SECRET || 'secret123',
   resave: false,
@@ -27,16 +27,17 @@ app.use(session({
 const ADMIN_USER = process.env.ADMIN_USER || "admin"
 const ADMIN_PASS = process.env.ADMIN_PASS || "12345"
 
-// ROOT
+// ================== ROOT (FIX UTAMA) ==================
 app.get('/', (req, res) => {
-  res.send("SERVER HIDUP ✅");
-});
+  res.sendFile(path.join(__dirname, 'public', 'login.html'))
+})
+
 // LOGIN PAGE
 app.get('/login', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'login.html'))
 })
 
-// LOGIN POST
+// LOGIN PROCESS
 app.post('/login', (req, res) => {
   const { username, password } = req.body
 
@@ -67,6 +68,11 @@ app.get('/logout', (req, res) => {
   req.session.destroy(() => {
     res.redirect('/login')
   })
+})
+
+// DEBUG ROUTE (BIAR RAILWAY DETECT)
+app.get('/ping', (req, res) => {
+  res.send("OK")
 })
 
 // START SERVER
