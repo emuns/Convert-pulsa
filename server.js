@@ -6,60 +6,40 @@ const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-// CONNECT DB
-mongoose.connect(process.env.MONGO_URI)
-.then(() => console.log("MongoDB connected ✅"))
-.catch(err => console.log(err));
+// ===== DEBUG ENV =====
+console.log("ENV CHECK:");
+console.log("MONGO_URI:", process.env.MONGO_URI ? "ADA ✅" : "KOSONG ❌");
 
-// SCHEMA
-const TransaksiSchema = new mongoose.Schema({
-  nomor: String,
-  nominal: String,
-  status: { type: String, default: "pending" },
-  createdAt: { type: Date, default: Date.now }
-});
-
-const Transaksi = mongoose.model("Transaksi", TransaksiSchema);
-
-// MIDDLEWARE
+// ===== MIDDLEWARE =====
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
 
-// ROUTE WEB
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+// ===== ROUTE TEST =====
+app.get("/api/test", (req, res) => {
+  res.json({ status: "OK", message: "Server hidup 🔥" });
 });
 
-// API TAMBAH TRANSAKSI
-app.post("/api/transaksi", async (req, res) => {
-  try {
-    const { nomor, nominal } = req.body;
+// ===== CONNECT MONGODB =====
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => {
+  console.log("MongoDB CONNECTED ✅");
 
-    const data = new Transaksi({ nomor, nominal });
-    await data.save();
-
-    res.json({ success: true, message: "Transaksi masuk" });
-  } catch (err) {
-    res.json({ success: false, error: err.message });
-  }
-});
-
-// API GET TRANSAKSI (ADMIN)
-app.get("/api/transaksi", async (req, res) => {
-  const data = await Transaksi.find().sort({ createdAt: -1 });
-  res.json(data);
-});
-
-// UPDATE STATUS
-app.post("/api/update/:id", async (req, res) => {
-  await Transaksi.findByIdAndUpdate(req.params.id, {
-    status: req.body.status
+  // START SERVER setelah DB connect
+  app.listen(PORT, () => {
+    console.log("Server jalan di port " + PORT);
   });
-  res.json({ success: true });
-});
 
-// START SERVER
-app.listen(PORT, () => {
-  console.log("Server jalan di port " + PORT);
+})
+.catch((err) => {
+  console.log("MongoDB ERROR ❌");
+  console.log(err);
+
+  // tetap hidup walau DB gagal
+  app.listen(PORT, () => {
+    console.log("Server jalan TANPA DB di port " + PORT);
+  });
 });
