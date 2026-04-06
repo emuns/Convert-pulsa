@@ -1,16 +1,28 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Transaksi</title>
-</head>
-<body>
+<div class="container">
   <h2>Convert Pulsa</h2>
 
-  <form method="POST" action="/transaksi">
-    <input name="nomor" placeholder="Nomor HP"><br>
-    <input name="nominal" type="number" placeholder="Nominal"><br>
-    <button>Kirim</button>
-  </form>
+  <input id="nomor" placeholder="Nomor HP">
+  <input id="nominal" placeholder="Nominal">
 
-</body>
-</html>
+  <button onclick="kirimData()">Kirim</button>
+</div>
+
+<script>
+async function kirimData() {
+  let nomor = document.getElementById("nomor").value;
+  let nominal = document.getElementById("nominal").value;
+
+  let res = await fetch("/api/transaksi", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ nomor, nominal })
+  });
+
+  let data = await res.json();
+  alert("Berhasil kirim!");
+
+  // lanjut ke WA
+  let pesan = `Convert pulsa\nNomor: ${nomor}\nNominal: ${nominal}`;
+  window.open(`https://wa.me/6281234567890?text=${encodeURIComponent(pesan)}`);
+}
+</script>
