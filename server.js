@@ -10,30 +10,29 @@ const PORT = process.env.PORT || 3000
 // ================= MIDDLEWARE =================
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
-
-// WAJIB Railway
 app.set('trust proxy', 1)
 
-// Static
 app.use(express.static(path.join(__dirname, 'public')))
 
-// Session
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'secret123',
+  secret: process.env.SESSION_SECRET || 'rahasia',
   resave: false,
   saveUninitialized: true,
   cookie: { secure: false }
 }))
 
-// 🔥 AMBIL DARI ENV
+// ================= DATA (sementara) =================
+let transaksi = []
+
+// ================= CONFIG =================
 const ADMIN_USER = process.env.ADMIN_USER
 const ADMIN_PASS = process.env.ADMIN_PASS
 
 // ================= ROUTES =================
 
-// ROOT → LOGIN
+// ROOT
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'login.html'))
+  res.redirect('/login.html')
 })
 
 // LOGIN
@@ -49,9 +48,49 @@ app.post('/login', (req, res) => {
 })
 
 // PROTECT DASHBOARD
-app.get('/dashboard.html', (req, res, next) => {
+function auth(req, res, next) {
   if (!req.session.login) return res.redirect('/login.html')
   next()
+}
+
+app.get('/dashboard.html', auth, (req, res, next) => next())
+app.get('/transaksi.html', auth, (req, res, next) => next())
+
+// ================= API =================
+
+// TAMBAH TRANSAKSI
+app.post('/api/transaksi', auth, (req, res) => {
+  const { nomor, provider, nominal } = req.body
+
+  const data = {
+    id: Date.now(),
+    nomor,
+    provider,
+    nominal,
+    rate: 0.8,
+    hasil: nominal * 0.8,
+    status: 'pending',
+    tanggal: new Date().toLocaleString()
+  }
+
+  transaksi.push(data)
+  res.json({ success: true })
+})
+
+// LIST TRANSAKSI
+app.get('/api/transaksi', auth, (req, res) => {
+  res.json(transaksi)
+})
+
+// UPDATE STATUS
+app.post('/api/update', auth, (req, res) => {
+  const { id, status } = req.body
+
+  transaksi = transaksi.map(t =>
+    t.id == id ? { ...t, status } : t
+  )
+
+  res.json({ success: true })
 })
 
 // LOGOUT
