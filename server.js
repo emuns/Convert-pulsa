@@ -9,7 +9,6 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// session (login admin)
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "rahasia",
@@ -18,24 +17,18 @@ app.use(
   })
 );
 
-// 🔥 static file (WAJIB)
+// static
 app.use(express.static(path.join(__dirname, "public")));
 
-// =======================
-// ROUTES
-// =======================
-
-// halaman utama
+// routes
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public/index.html"));
 });
 
-// login
 app.get("/login", (req, res) => {
   res.sendFile(path.join(__dirname, "public/login.html"));
 });
 
-// proses login
 app.post("/login", (req, res) => {
   const { username, password } = req.body;
 
@@ -45,43 +38,34 @@ app.post("/login", (req, res) => {
   ) {
     req.session.user = username;
     return res.redirect("/dashboard");
-  } else {
-    return res.send("Login gagal");
   }
+
+  res.send("Login gagal");
 });
 
-// dashboard (protected)
 app.get("/dashboard", (req, res) => {
   if (!req.session.user) return res.redirect("/login");
   res.sendFile(path.join(__dirname, "public/dashboard.html"));
 });
 
-// admin
 app.get("/admin", (req, res) => {
   if (!req.session.user) return res.redirect("/login");
   res.sendFile(path.join(__dirname, "public/admin.html"));
 });
 
-// transaksi
 app.get("/transaksi", (req, res) => {
   res.sendFile(path.join(__dirname, "public/transaksi.html"));
 });
 
-// logout
 app.get("/logout", (req, res) => {
-  req.session.destroy(() => {
-    res.redirect("/");
-  });
+  req.session.destroy(() => res.redirect("/"));
 });
 
-// fallback (anti blank putih)
+// fallback
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "public/index.html"));
 });
 
-// =======================
-// START SERVER
-// =======================
 const PORT = process.env.PORT || 8080;
 
 app.listen(PORT, () => {
