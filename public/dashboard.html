@@ -1,10 +1,35 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Dashboard</title>
-</head>
-<body>
-  <h2>Dashboard Admin 🚀</h2>
-  <a href="/logout">Logout</a>
-</body>
-</html>
+<h2>Dashboard</h2>
+
+<a href="/transaksi.html">Input Transaksi</a> |
+<a href="/logout">Logout</a>
+
+<h3>Daftar Transaksi</h3>
+<div id="list"></div>
+
+<script>
+fetch('/api/transaksi')
+.then(res => res.json())
+.then(data => {
+  let html = ''
+
+  data.forEach(t => {
+    html += `
+      <div>
+        ${t.nomor} - ${t.provider} - ${t.nominal}
+        = ${t.hasil} (${t.status})
+        <button onclick="update(${t.id}, 'sukses')">Sukses</button>
+      </div>
+    `
+  })
+
+  document.getElementById('list').innerHTML = html
+})
+
+function update(id, status){
+  fetch('/api/update',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({id,status})
+  }).then(()=>location.reload())
+}
+</script>
