@@ -3,69 +3,61 @@ require('dotenv').config()
 const express = require('express')
 const session = require('express-session')
 const path = require('path')
+const mongoose = require('mongoose')
 
 const app = express()
+
 const PORT = process.env.PORT || 3000
 
-// ================= MIDDLEWARE =================
+// ===== CONNECT MONGODB =====
+mongoose.connect(process.env.MONGO_URI)
+.then(() => console.log("MongoDB CONNECTED"))
+.catch(err => console.log(err))
+
+// ===== MIDDLEWARE =====
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
 
-app.set('trust proxy', 1)
-
-// ✅ SESSION FIX (Railway + Local aman)
+// ===== SESSION (HARUS DI ATAS ROUTE) =====
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'rahasia',
+  secret: process.env.SESSION_SECRET || "rahasia",
   resave: false,
-  saveUninitialized: false,
-  cookie: {
-    secure: process.env.NODE_ENV === 'production', // auto detect Railway
-    httpOnly: true,
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
-  }
+  saveUninitialized: true
 }))
 
-// ================= CONFIG =================
-const ADMIN_USER = process.env.ADMIN_USER || 'admin'
-const ADMIN_PASS = process.env.ADMIN_PASS || '12345'
+// ===== STATIC FILE =====
+app.use(express.static('public'))
 
-// ================= DATA =================
-let transaksi = []
+// ===== CONFIG ADMIN =====
+const ADMIN_USER = process.env.ADMIN_USER || "admin"
+const ADMIN_PASS = process.env.ADMIN_PASS || "12345"
 
-// ================= AUTH =================
+// ===== MODEL =====
+const Transaksi = mongoose.model('Transaksi', {
+  nomor: String,
+  provider: String,
+  nominal: Number,
+  hasil: Number,
+  status: String,
+  tanggal: String
+})
+
+// ===== AUTH MIDDLEWARE =====
 function auth(req, res, next) {
-  if (!req.session || !req.session.login) {
+  if (!req.session.login) {
     return res.redirect('/login.html')
   }
   next()
 }
 
-// ================= STATIC =================
-app.use(express.static(path.join(__dirname, 'public')))
-
-// ================= ROUTES =================
+// ===== ROUTES =====
 
 // ROOT
 app.get('/', (req, res) => {
   res.redirect('/login.html')
 })
 
-// LOGIN PAGE
-app.get('/login.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/login.html'))
-})
-
-// DASHBOARD
-app.get('/dashboard.html', auth, (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/dashboard.html'))
-})
-
-// TRANSAKSI
-app.get('/transaksi.html', auth, (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/transaksi.html'))
-})
-
-// ================= LOGIN =================
+// LOGIN
 app.post('/login', (req, res) => {
   const { username, password } = req.body
 
@@ -77,14 +69,21 @@ app.post('/login', (req, res) => {
   res.send('Login gagal ❌')
 })
 
-// ================= API =================
+// DASHBOARD
+app.get('/dashboard.html', auth, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/dashboard.html'))
+})
 
-// TAMBAH TRANSAKSI
-app.post('/api/transaksi', auth, (req, res) => {
+// TRANSAKSI PAGE
+app.get('/transaksi.html', auth, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/transaksi.html'))
+})
+
+// ADD TRANSAKSI
+app.post('/api/transaksi', auth, async (req, res) => {
   const { nomor, provider, nominal } = req.body
 
   const data = {
-    id: Date.now(),
     nomor,
     provider,
     nominal: Number(nominal),
@@ -93,22 +92,22 @@ app.post('/api/transaksi', auth, (req, res) => {
     tanggal: new Date().toLocaleString()
   }
 
-  transaksi.push(data)
+  await Transaksi.create(data)
+
   res.json({ success: true })
 })
 
-// LIST TRANSAKSI
-app.get('/api/transaksi', auth, (req, res) => {
-  res.json(transaksi)
+// GET TRANSAKSI
+app.get('/api/transaksi', auth, async (req, res) => {
+  const data = await Transaksi.find().sort({ _id: -1 })
+  res.json(data)
 })
 
 // UPDATE STATUS
-app.post('/api/update', auth, (req, res) => {
+app.post('/api/update', auth, async (req, res) => {
   const { id, status } = req.body
 
-  transaksi = transaksi.map(t =>
-    t.id == id ? { ...t, status } : t
-  )
+  await Transaksi.findByIdAndUpdate(id, { status })
 
   res.json({ success: true })
 })
@@ -120,7 +119,7 @@ app.get('/logout', (req, res) => {
   })
 })
 
-// ================= START =================
+// START SERVER
 app.listen(PORT, '0.0.0.0', () => {
   console.log('Server jalan di port ' + PORT)
 })
