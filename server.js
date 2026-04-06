@@ -1,14 +1,14 @@
 require("dotenv").config();
 const express = require("express");
-const session = require("express-session");
 const mongoose = require("mongoose");
+const session = require("express-session");
 
 const app = express();
 
-// ✅ WAJIB: pakai PORT dari Railway
-const PORT = process.env.PORT || 3000;
+// ===== CONFIG =====
+const PORT = process.env.PORT || 8080;
 
-// Middleware
+// ===== MIDDLEWARE =====
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -20,25 +20,18 @@ app.use(
   })
 );
 
-// ✅ CONNECT MONGO (optional tapi aman)
-if (process.env.MONGO_URI) {
-  mongoose
-    .connect(process.env.MONGO_URI)
-    .then(() => console.log("MongoDB Connected"))
-    .catch((err) => console.log("Mongo Error:", err.message));
-}
+// ===== DATABASE =====
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => console.log("MongoDB connected"))
+  .catch((err) => console.log("MongoDB error:", err));
 
-// ✅ ROUTE UTAMA (WAJIB ADA)
+// ===== ROUTE TEST =====
 app.get("/", (req, res) => {
-  res.send("🚀 Convert Pulsa API Aktif!");
+  res.send("🔥 Server convert pulsa aktif!");
 });
 
-// contoh route test
-app.get("/test", (req, res) => {
-  res.json({ status: "OK" });
-});
-
-// ✅ LISTEN (INI PENTING BANGET)
+// ===== START SERVER =====
 app.listen(PORT, "0.0.0.0", () => {
-  console.log("Server jalan di port " + PORT);
+  console.log("Server jalan di port", PORT);
 });
