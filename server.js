@@ -29,11 +29,8 @@ const ADMIN_PASS = process.env.ADMIN_PASS || "12345"
 
 // ROOT
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'login.html'))
-app.get("/", (req, res) => {
   res.send("SERVER HIDUP ✅");
 });
-
 // LOGIN PAGE
 app.get('/login', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'login.html'))
