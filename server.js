@@ -6,32 +6,39 @@ const path = require('path')
 
 const app = express()
 
-// ✅ PORT wajib dari Railway
+// PORT dari Railway
 const PORT = process.env.PORT || 3000
 
-// ✅ Middleware
+// ================= MIDDLEWARE =================
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
 
-// ✅ Static file (PENTING!)
+// Static file (public folder)
 app.use(express.static(path.join(__dirname, 'public')))
 
-// ✅ Session (fix biar gak crash di Railway)
+// 🔥 WAJIB di Railway (fix session)
+app.set('trust proxy', 1)
+
+// Session
 app.use(session({
   secret: process.env.SESSION_SECRET || 'secret123',
   resave: false,
-  saveUninitialized: true
+  saveUninitialized: true,
+  cookie: {
+    secure: false,
+    maxAge: 1000 * 60 * 60 // 1 jam
+  }
 }))
 
-// ✅ USER LOGIN
+// ================= LOGIN CONFIG =================
 const ADMIN_USER = process.env.ADMIN_USER || 'admin'
 const ADMIN_PASS = process.env.ADMIN_PASS || '12345'
 
 // ================= ROUTES =================
 
-// ✅ ROOT (WAJIB ADA BIAR GA ERROR)
+// Root
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'login.html'))
+  res.redirect('/login')
 })
 
 // Login page
