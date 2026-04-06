@@ -10,10 +10,14 @@ const PORT = process.env.PORT || 3000
 // ================= MIDDLEWARE =================
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
+
+// WAJIB buat Railway
 app.set('trust proxy', 1)
 
+// Static file
 app.use(express.static(path.join(__dirname, 'public')))
 
+// Session
 app.use(session({
   secret: process.env.SESSION_SECRET || 'rahasia',
   resave: false,
@@ -21,16 +25,16 @@ app.use(session({
   cookie: { secure: false }
 }))
 
-// ================= DATA (sementara) =================
-let transaksi = []
-
 // ================= CONFIG =================
-const ADMIN_USER = process.env.ADMIN_USER
-const ADMIN_PASS = process.env.ADMIN_PASS
+const ADMIN_USER = process.env.ADMIN_USER || 'admin'
+const ADMIN_PASS = process.env.ADMIN_PASS || '12345'
+
+// ================= DATA =================
+let transaksi = []
 
 // ================= ROUTES =================
 
-// ROOT
+// ROOT → langsung ke login
 app.get('/', (req, res) => {
   res.redirect('/login.html')
 })
@@ -47,12 +51,13 @@ app.post('/login', (req, res) => {
   res.send('Login gagal ❌')
 })
 
-// PROTECT DASHBOARD
+// AUTH MIDDLEWARE
 function auth(req, res, next) {
   if (!req.session.login) return res.redirect('/login.html')
   next()
 }
 
+// PROTECT PAGE
 app.get('/dashboard.html', auth, (req, res, next) => next())
 app.get('/transaksi.html', auth, (req, res, next) => next())
 
@@ -66,9 +71,8 @@ app.post('/api/transaksi', auth, (req, res) => {
     id: Date.now(),
     nomor,
     provider,
-    nominal,
-    rate: 0.8,
-    hasil: nominal * 0.8,
+    nominal: Number(nominal),
+    hasil: Number(nominal) * 0.8,
     status: 'pending',
     tanggal: new Date().toLocaleString()
   }
@@ -100,7 +104,7 @@ app.get('/logout', (req, res) => {
   })
 })
 
-// START
+// START SERVER
 app.listen(PORT, '0.0.0.0', () => {
   console.log('Server jalan di port ' + PORT)
 })
