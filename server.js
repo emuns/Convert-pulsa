@@ -29,7 +29,8 @@ const ADMIN_PASS = process.env.ADMIN_PASS || "12345"
 
 // ROOT
 app.get('/', (req, res) => {
-  res.redirect('/login')
+  res.sendFile(path.join(__dirname, 'public', 'login.html'))
+})
 })
 
 // LOGIN PAGE
