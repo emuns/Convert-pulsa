@@ -1,78 +1,29 @@
 require("dotenv").config();
 const express = require("express");
-const mongoose = require("mongoose");
-const session = require("express-session");
+const path = require("path");
 
 const app = express();
 
-// ================== MIDDLEWARE ==================
+// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use(session({
-  secret: process.env.SESSION_SECRET || "rahasia",
-  resave: false,
-  saveUninitialized: true
-}));
+// 🔥 Serve static file (PENTING)
+app.use(express.static(path.join(__dirname, "public")));
 
-// ================== CONNECT MONGO ==================
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("✅ MongoDB connected"))
-  .catch(err => {
-    console.log("❌ MongoDB error:", err.message);
-    // JANGAN process.exit() biar Railway gak mati
-  });
-
-// ================== ROUTES ==================
-
-// TEST ROOT
+// Route utama
 app.get("/", (req, res) => {
-  res.send("🚀 Server convert pulsa aktif");
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-// LOGIN ADMIN (simple)
-app.post("/login", (req, res) => {
-  const { username, password } = req.body;
-
-  if (
-    username === process.env.ADMIN_USER &&
-    password === process.env.ADMIN_PASS
-  ) {
-    req.session.login = true;
-    return res.json({ success: true, message: "Login berhasil" });
-  }
-
-  res.json({ success: false, message: "Login gagal" });
+// Test API (optional)
+app.get("/api", (req, res) => {
+  res.json({ status: "OK", message: "API jalan" });
 });
 
-// DASHBOARD (protected)
-app.get("/dashboard", (req, res) => {
-  if (!req.session.login) {
-    return res.status(401).send("Unauthorized");
-  }
-
-  res.send("Welcome Admin 🔐");
-});
-
-// LOGOUT
-app.get("/logout", (req, res) => {
-  req.session.destroy(() => {
-    res.send("Logout berhasil");
-  });
-});
-
-// ================== ERROR HANDLER ==================
-process.on("uncaughtException", err => {
-  console.error("❌ Uncaught Exception:", err);
-});
-
-process.on("unhandledRejection", err => {
-  console.error("❌ Unhandled Rejection:", err);
-});
-
-// ================== START SERVER ==================
+// Port Railway
 const PORT = process.env.PORT || 8080;
 
 app.listen(PORT, () => {
-  console.log("🚀 Server jalan di port " + PORT);
+  console.log("Server jalan di port " + PORT);
 });
