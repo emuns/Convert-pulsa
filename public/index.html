@@ -1,38 +1,36 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Convert Pulsa</title>
+
+  <link rel="stylesheet" href="/css/style.css">
+</head>
 <body>
-<h2>Convert Pulsa</h2>
 
-<form id="form">
-<input id="nomor" placeholder="Nomor"><br>
-<input id="nominal" type="number" placeholder="Nominal"><br>
+  <div class="container">
+    <h1>💰 Convert Pulsa</h1>
+    <p>Tukar pulsa jadi saldo e-wallet / transfer bank</p>
 
-<select id="provider">
-<option>Telkomsel</option>
-<option>XL</option>
-</select><br>
+    <form id="form">
+      <input type="number" id="nominal" placeholder="Masukkan nominal pulsa" required>
+      <select id="provider">
+        <option value="telkomsel">Telkomsel</option>
+        <option value="xl">XL</option>
+        <option value="axis">Axis</option>
+      </select>
 
-<input id="tujuan" placeholder="Tujuan"><br>
-<input type="file" id="bukti"><br>
+      <button type="submit">Hitung</button>
+    </form>
 
-<button>Kirim</button>
-</form>
+    <div id="result"></div>
 
-<script>
-form.onsubmit = async (e) => {
- e.preventDefault();
+    <a class="wa" href="https://wa.me/628xxxxxxxxxx" target="_blank">
+      Chat Admin WhatsApp
+    </a>
+  </div>
 
- let fd = new FormData();
- fd.append("nomor", nomor.value);
- fd.append("nominal", nominal.value);
- fd.append("provider", provider.value);
- fd.append("tujuan", tujuan.value);
- fd.append("bukti", bukti.files[0]);
-
- await fetch("/kirim", { method:"POST", body: fd });
- alert("Terkirim!");
-};
-</script>
-
+  <script src="/js/app.js"></script>
 </body>
 </html>
