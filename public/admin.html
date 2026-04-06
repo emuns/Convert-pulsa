@@ -1,11 +1,35 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Admin</title>
-  <link rel="stylesheet" href="/css/style.css">
-</head>
-<body>
-  <h1>Halaman Admin</h1>
-  <a href="/dashboard">Kembali</a>
-</body>
-</html>
+<div class="container">
+  <h2>Admin Panel</h2>
+  <div id="list"></div>
+</div>
+
+<script>
+async function loadData() {
+  let res = await fetch("/api/transaksi");
+  let data = await res.json();
+
+  let html = "";
+  data.forEach(d => {
+    html += `
+      <div class="card">
+        ${d.nomor} - ${d.nominal} <br>
+        Status: ${d.status}
+        <button onclick="update('${d._id}', 'success')">Sukses</button>
+      </div>
+    `;
+  });
+
+  document.getElementById("list").innerHTML = html;
+}
+
+async function update(id, status) {
+  await fetch("/api/update/" + id, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status })
+  });
+  loadData();
+}
+
+loadData();
+</script>
