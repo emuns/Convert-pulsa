@@ -29,8 +29,8 @@ const ADMIN_PASS = process.env.ADMIN_PASS || "12345"
 
 // ================== ROOT (FIX UTAMA) ==================
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'login.html'))
-})
+  res.status(200).send("OK");
+});
 
 // LOGIN PAGE
 app.get('/login', (req, res) => {
