@@ -120,6 +120,6 @@ app.get('/logout', (req, res) => {
 })
 
 // START SERVER
-app.listen(PORT, '0.0.0.0', () => {
-  console.log('Server jalan di port ' + PORT)
-})
+app.listen(PORT, () => {
+  console.log("Server jalan di port " + PORT);
+});
