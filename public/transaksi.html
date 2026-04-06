@@ -2,14 +2,15 @@
 <html>
 <head>
   <title>Transaksi</title>
-  <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-  <h2>Kirim Transaksi</h2>
-  <form>
-    <input type="text" placeholder="Nomor HP"><br>
-    <input type="number" placeholder="Nominal"><br>
+  <h2>Convert Pulsa</h2>
+
+  <form method="POST" action="/transaksi">
+    <input name="nomor" placeholder="Nomor HP"><br>
+    <input name="nominal" type="number" placeholder="Nominal"><br>
     <button>Kirim</button>
   </form>
+
 </body>
 </html>
