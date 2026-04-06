@@ -10,10 +10,21 @@ const app = express()
 const PORT = process.env.PORT;
 
 // ===== CONNECT MONGODB =====
-mongoose.connect(process.env.MONGO_URI)
-.then(() => console.log("MongoDB CONNECTED"))
-.catch(err => console.log(err))
+async function startServer() {
+  try {
+    await mongoose.connect(process.env.MONGO_URI)
+    console.log("MongoDB CONNECTED")
 
+    app.listen(process.env.PORT || 3000, "0.0.0.0", () => {
+      console.log("Server jalan di port " + (process.env.PORT || 3000))
+    })
+
+  } catch (err) {
+    console.error("Mongo ERROR:", err)
+  }
+}
+
+startServer()
 // ===== MIDDLEWARE =====
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
